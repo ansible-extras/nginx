@@ -1,0 +1,18 @@
+- name: 'install'
+  apt:
+    name: "nginx{% if nginx_version %}={{ nginx_version }}{% endif %}"
+
+- name: 'update nginx.conf'
+  template:
+    src: '{{ nginx_conf }}'
+    dest: '/etc/nginx/nginx.conf'
+  when: nginx_conf|default("") != ""
+  notify: 'nginx: restart'
+
+- name: 'update conf.d'
+  template:
+    src: '{{ item }}'
+    dest: '/etc/nginx/conf.d/{{ item.split(":")[1] | default(item | basename) }}'
+  with_items: "{{ nginx_conf_d }}"
+  when: nginx_conf_d | default([]) | length > 0
+  notify: 'nginx: restart'
